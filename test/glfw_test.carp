@@ -1,0 +1,7 @@
+(load "glfw_backend.carp")
+
+(defn main []
+  (let [backend (GLFWBackend.init)]
+    (do
+      (println* "GLFW Backend compiled successfully.")
+      0)))
