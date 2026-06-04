@@ -1,0 +1,113 @@
+(load "GLFW.carp")
+(load "Map.carp")
+(load "Vector.carp")
+
+(use GLFW)
+(use Map)
+
+(register-type GLFWwindow)
+(register-type GLFWmonitor)
+
+(doc InputSource "represents a raw input device component.")
+(deftype InputSource
+    (Key [Int])
+    (MouseButton [Int])
+    (MouseDeltaX [])
+    (MouseDeltaY [])
+    (MouseScrollX [])
+    (MouseScrollY []))
+
+(doc ActionState "represents the current value of a semantic input action.")
+(deftype ActionState
+    (Digital [Bool])
+    (Analog [Double]))
+
+(doc Binding "associates a semantic action name with a raw input source.")
+(deftype Binding [
+    action-name String
+    source InputSource
+    multiplier Double
+])
+
+(doc InputManager "tracks input state and maps raw sources to semantic actions.")
+(deftype InputManager [
+    window (Ptr GLFWwindow)
+    bindings (Array Binding)
+    states (Map String ActionState)
+    last-mouse-x Double
+    last-mouse-y Double
+    first-mouse Bool
+])
+
+(defmodule InputManager
+    (defn create [win]
+        (InputManager.init win [] {} 0.0 0.0 true))
+
+    (defn add-binding! [mgr action source mult]
+        (Array.push-back! (InputManager.bindings mgr) (Binding.init action source mult)))
+
+    (defn- get-source-value [mgr src]
+        (let [win @(InputManager.window mgr)]
+            (match @src
+                (InputSource.Key k) (if (= (GLFW.get-key win k) GLFW.PRESS) 1.0 0.0)
+                (InputSource.MouseButton b) (if (= (GLFW.get-mouse-button win b) GLFW.PRESS) 1.0 0.0)
+                _ 0.0)))
+
+    (defn update! [mgr]
+        (let [win @(InputManager.window mgr)
+              mx 0.0
+              my 0.0
+              _ (GLFW.get-cursor-pos win (Pointer.address &mx) (Pointer.address &my))
+              dx (if @(InputManager.first-mouse mgr) 0.0 (- mx @(InputManager.last-mouse-x mgr)))
+              dy (if @(InputManager.first-mouse mgr) 0.0 (- my @(InputManager.last-mouse-y mgr)))
+              bindings (InputManager.bindings mgr)]
+          (do
+            (InputManager.set-last-mouse-x! mgr mx)
+            (InputManager.set-last-mouse-y! mgr my)
+            (InputManager.set-first-mouse! mgr false)
+            
+            (InputManager.set-states! mgr {})
+            
+            (let [states (InputManager.states mgr)]
+              (for [i 0 (Array.length bindings)]
+                (let [b (Array.unsafe-nth bindings i)
+                      name (Binding.action-name b)
+                      src (Binding.source b)
+                      mult @(Binding.multiplier b)]
+                  (match @src
+                    (InputSource.Key _) 
+                      (let [val (get-source-value mgr src)
+                            prev (match (Map.get-maybe states name)
+                                   (Maybe.Just (ActionState.Digital b)) b
+                                   _ false)]
+                        (Map.put! states name &(ActionState.Digital (or prev (> val 0.5)))))
+                    (InputSource.MouseButton _)
+                      (let [val (get-source-value mgr src)
+                            prev (match (Map.get-maybe states name)
+                                   (Maybe.Just (ActionState.Digital b)) b
+                                   _ false)]
+                        (Map.put! states name &(ActionState.Digital (or prev (> val 0.5)))))
+                    (InputSource.MouseDeltaX)
+                      (let [prev (match (Map.get-maybe states name)
+                                   (Maybe.Just (ActionState.Analog v)) v
+                                   _ 0.0)]
+                        (Map.put! states name &(ActionState.Analog (+ prev (* dx mult)))))
+                    (InputSource.MouseDeltaY)
+                      (let [prev (match (Map.get-maybe states name)
+                                   (Maybe.Just (ActionState.Analog v)) v
+                                   _ 0.0)]
+                        (Map.put! states name &(ActionState.Analog (+ prev (* dy mult)))))
+                    _ ())))))))
+
+    (doc action-digital? "returns true if the action is currently active (pressed).")
+    (defn action-digital? [mgr action]
+        (match (Map.get-maybe (InputManager.states mgr) action)
+            (Maybe.Just (ActionState.Digital b)) b
+            _ false))
+
+    (doc action-analog "returns the analog value of the action.")
+    (defn action-analog [mgr action]
+        (match (Map.get-maybe (InputManager.states mgr) action)
+            (Maybe.Just (ActionState.Analog v)) v
+            _ 0.0))
+)

@@ -1,0 +1,30 @@
+(load "Test.carp")
+(use Test)
+(load "input.carp")
+(use InputManager)
+
+(deftest input-test
+  (let [state (Test.State.init 0 0)]
+    (let [;; Since we can't easily mock GLFW windows in a unit test without a GPU,
+          ;; we will test the structural and aggregation logic.
+          mgr (InputManager.create NULL)
+          _b1 (InputManager.add-binding! &mgr (copy "Jump") (InputSource.Key 32) 1.0) ;; Space
+          _b2 (InputManager.add-binding! &mgr (copy "Jump") (InputSource.MouseButton 0) 1.0) ;; Left Click
+          _b3 (InputManager.add-binding! &mgr (copy "Forward") (InputSource.Key 87) 1.0) ;; W
+          _b4 (InputManager.add-binding! &mgr (copy "LookX") (InputSource.MouseDeltaX) 1.0)
+          
+          s1 (assert-equal &state 4 (Array.length (InputManager.bindings &mgr)) "Bindings are added correctly")
+          
+          ;; Manually inject states to test aggregation and retrieval
+          ;; This bypasses the GLFW-dependent update! for parts we can't mock
+          states (InputManager.states &mgr)
+          _s1 (Map.put! states "Jump" &(ActionState.Digital true))
+          _s2 (Map.put! states "Forward" &(ActionState.Digital false))
+          _s3 (Map.put! states "LookX" &(ActionState.Analog 12.5))
+          
+          s2 (assert-true &s1 (InputManager.action-digital? &mgr "Jump") "Digital action retrieval works")
+          s3 (assert-true &s2 (not (InputManager.action-digital? &mgr "Forward")) "Digital false action works")
+          s4 (assert-equal &s3 12.5 (InputManager.action-analog &mgr "LookX") "Analog action retrieval works")
+          s5 (assert-equal &s4 0.0 (InputManager.action-analog &mgr "NonExistent") "Missing analog returns 0.0")
+          ]
+      s5)))
