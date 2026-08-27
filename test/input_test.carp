@@ -5,50 +5,59 @@
 
 ;; --- InputMock for Unit Testing ---
 (defmodule InputMock
-    (def key-pressed false)
-    (def mouse-x 0.0)
-    (def mouse-y 0.0)
+  (def key-pressed false)
+  (def mouse-x 0.0)
+  (def mouse-y 0.0)
 
-    (defn get-key [ctx k] key-pressed)
-    (defn get-mouse-btn [ctx b] false)
-    (defn get-cursor-pos [ctx x y] 
-        (do
-            (Pointer.set x mouse-x)
-            (Pointer.set y mouse-y)))
+  (defn get-key [ctx k] key-pressed)
+  (defn get-mouse-btn [ctx b] false)
+  (defn get-cursor-pos [ctx x y]
+    (do (Pointer.set x mouse-x) (Pointer.set y mouse-y)))
 
-    (defn init []
-        (InputBackend.init get-key get-mouse-btn get-cursor-pos))
-)
+  (defn init [] (InputBackend.init get-key get-mouse-btn get-cursor-pos)))
 
 (deftest input-test
   (let [state (Test.State.init 0 0)]
     (let [backend (InputMock.init)
           mgr (InputManager.create NULL backend)
           _b1 (InputManager.add-binding! &mgr "Jump" (InputSource.Key 32) 1.0)
-          
-          s1 (Test.assert-equal &state 1 (Array.length (InputManager.bindings &mgr)) "Bindings added")
-          
+          s1 (Test.assert-equal &state
+                                1
+                                (Array.length (InputManager.bindings &mgr))
+                                "Bindings added")
           ;; Frame 1: Pressed
           _f1_set (set! InputMock.key-pressed true)
           _f1_upd (InputManager.update! &mgr)
-          
-          s2 (Test.assert-true &s1 (InputManager.action-digital? &mgr "Jump") "F1: Digital true")
-          s3 (Test.assert-true &s2 (InputManager.action-pressed? &mgr "Jump") "F1: Pressed true")
-          s4 (Test.assert-true &s3 (not (InputManager.action-released? &mgr "Jump")) "F1: Released false")
-
+          s2 (Test.assert-true &s1
+                               (InputManager.action-digital? &mgr "Jump")
+                               "F1: Digital true")
+          s3 (Test.assert-true &s2
+                               (InputManager.action-pressed? &mgr "Jump")
+                               "F1: Pressed true")
+          s4 (Test.assert-true &s3
+                               (not (InputManager.action-released? &mgr "Jump"))
+                               "F1: Released false")
           ;; Frame 2: Held
           _f2_upd (InputManager.update! &mgr)
-          
-          s5 (Test.assert-true &s4 (InputManager.action-digital? &mgr "Jump") "F2: Digital true")
-          s6 (Test.assert-true &s5 (not (InputManager.action-pressed? &mgr "Jump")) "F2: Pressed false")
-          s7 (Test.assert-true &s6 (not (InputManager.action-released? &mgr "Jump")) "F2: Released false")
-
+          s5 (Test.assert-true &s4
+                               (InputManager.action-digital? &mgr "Jump")
+                               "F2: Digital true")
+          s6 (Test.assert-true &s5
+                               (not (InputManager.action-pressed? &mgr "Jump"))
+                               "F2: Pressed false")
+          s7 (Test.assert-true &s6
+                               (not (InputManager.action-released? &mgr "Jump"))
+                               "F2: Released false")
           ;; Frame 3: Released
           _f3_set (set! InputMock.key-pressed false)
           _f3_upd (InputManager.update! &mgr)
-          
-          s8 (Test.assert-false &s7 (InputManager.action-digital? &mgr "Jump") "F3: Digital false")
-          s9 (Test.assert-false &s8 (InputManager.action-pressed? &mgr "Jump") "F3: Pressed false")
-          s10 (Test.assert-true &s9 (InputManager.action-released? &mgr "Jump") "F3: Released true")
-          ]
+          s8 (Test.assert-false &s7
+                                (InputManager.action-digital? &mgr "Jump")
+                                "F3: Digital false")
+          s9 (Test.assert-false &s8
+                                (InputManager.action-pressed? &mgr "Jump")
+                                "F3: Pressed false")
+          s10 (Test.assert-true &s9
+                                (InputManager.action-released? &mgr "Jump")
+                                "F3: Released true")]
       s10)))

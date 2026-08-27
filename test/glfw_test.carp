@@ -2,6 +2,4 @@
 
 (defn main []
   (let [backend (GLFWBackend.init)]
-    (do
-      (println* "GLFW Backend compiled successfully.")
-      0)))
+    (do (println* "GLFW Backend compiled successfully.") 0)))
