@@ -1,0 +1,59 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <link rel="stylesheet" href="../style.css">
+    </head>
+    <body>
+        <div class="content">
+            <a href="https://github.com/carpentry-org/carp-input">
+                <div class="logo">
+                    <img src="" alt="Logo">
+                    <div class="index">
+                        <ul>
+                            <li>
+                                <a href="InputManager.html">
+                                    InputManager
+                                </a>
+                            </li>
+                            <li>
+                                <a href="GLFWBackend.html">
+                                    GLFWBackend
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <h1>
+                        carp-input
+                    </h1>
+                    <p>Action-based input for Carp.</p>
+<pre><code>(load &quot;git@github.com:carpentry-org/carp-input@master&quot;)
+</code></pre>
+<ul>
+<li><a href="./InputManager.html"><code>InputManager</code></a> — bindings, action state, axes</li>
+<li><a href="./GLFWBackend.html"><code>GLFWBackend</code></a> — feeds the manager from GLFW events</li>
+</ul>
+<p>Game logic asks whether <code>&quot;MoveForward&quot;</code> is active, not whether <code>W</code> is down. A
+binding maps hardware (keys, mouse buttons, joystick axes) to a named action,
+and rebinding a control means changing the binding rather than hunting through
+gameplay code for key codes.</p>
+<pre><code>(let-do [im (InputManager.new)]
+  (InputManager.bind! &amp;im &quot;MoveForward&quot; (Key.w))
+  (InputManager.bind! &amp;im &quot;MoveForward&quot; (Key.up))
+  (when (InputManager.active? &amp;im &quot;MoveForward&quot;)
+    (move-player)))
+</code></pre>
+<p><code>InputManager</code> on its own has no dependency on a window library; loading
+<code>input.carp</code> alone gets you the manager without GLFW. The backend is the part
+that needs GLFW, and pulls in carp's own <code>GLFW.carp</code>, which wants <code>glfw3</code>
+available to <code>pkg-config</code>.</p>
+
+                </div>
+            </a>
+        </div>
+    </body>
+</html>

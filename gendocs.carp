@@ -1,0 +1,39 @@
+(load "carp-input.carp")
+
+(Project.config "title" "carp-input")
+(Project.config "docs-directory" "./docs/")
+(Project.config "docs-logo" "")
+(Project.config "docs-url" "https://github.com/carpentry-org/carp-input")
+(Project.config "docs-styling" "../style.css")
+(Project.config "docs-prelude" "Action-based input for Carp.
+
+```
+(load \"git@github.com:carpentry-org/carp-input@master\")
+```
+
+- [`InputManager`](./InputManager.html) — bindings, action state, axes
+- [`GLFWBackend`](./GLFWBackend.html) — feeds the manager from GLFW events
+
+Game logic asks whether `\"MoveForward\"` is active, not whether `W` is down. A
+binding maps hardware (keys, mouse buttons, joystick axes) to a named action,
+and rebinding a control means changing the binding rather than hunting through
+gameplay code for key codes.
+
+```
+(let-do [im (InputManager.new)]
+  (InputManager.bind! &im \"MoveForward\" (Key.w))
+  (InputManager.bind! &im \"MoveForward\" (Key.up))
+  (when (InputManager.active? &im \"MoveForward\")
+    (move-player)))
+```
+
+`InputManager` on its own has no dependency on a window library; loading
+`input.carp` alone gets you the manager without GLFW. The backend is the part
+that needs GLFW, and pulls in carp's own `GLFW.carp`, which wants `glfw3`
+available to `pkg-config`.")
+
+(save-docs InputManager GLFWBackend)
+; Carp's save-docs hardcodes the index filename as <title>_index.html.
+; Rename to docs/index.html.
+(defn main []
+  (System.system "mv ./docs/carp-input_index.html ./docs/index.html"))
