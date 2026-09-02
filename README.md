@@ -10,9 +10,23 @@ This library decouples raw hardware events (keys, mouse buttons, joystick axes) 
 - **Analog & Digital**: Supports binary buttons, analog axes, and mouse deltas.
 - **Easy Rebinding**: Update controls at runtime by modifying the binding list.
 
+## Installation
+
+```
+(load "git@github.com:carpentry-org/carp-input@master")
+```
+
+That includes the GLFW backend, which needs `glfw3` visible to `pkg-config`.
+For the manager alone, with no window-library dependency:
+
+```
+(load "git@github.com:carpentry-org/carp-input@master" "input.carp")
+```
+
 ## Examples
 
-See [examples.md](examples.md) for usage examples.
+See [examples.md](examples.md) for usage examples, and the
+[API documentation](https://carpentry.dev/carp-input) for the full reference.
 
 ## License
 MIT

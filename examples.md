@@ -5,7 +5,7 @@
 Mapping raw keys and mouse actions to semantic game actions, updating the manager, and querying them digitally or analogically:
 
 ```clojure
-(load "carp-input/input.carp")
+(load "git@github.com:carpentry-org/carp-input@master" "input.carp")
 (use InputManager)
 
 (defn main []
